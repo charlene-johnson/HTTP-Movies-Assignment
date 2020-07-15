@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useParams, useHistory} from 'react-router-dom';
 import axios from 'axios'
 
@@ -11,26 +11,46 @@ const initialMovie = {
 
 export default function UpdateForm(props) {
 
-    const {push} = useHistory();
+    const {push}= useHistory();
     const {id} = useParams();
     const [movie, setMovie] = useState(initialMovie);
 
-    const changeHandler = e => {
-        e.persist()
-        setMovie({
-            ...movie,
-            [e.target.name] : e.target.value
+    useEffect(() => {
+        axios.get(`http://localhost:5000/api/movies/${id}`)
+        .then(res => {
+            setMovie(res.data)
+             
         })
+        .catch(err => console.log(err))
+    }, [id])
+  
+    const changeHandler = e => {
+        let newStars = []
+        let value = e.target.value
+        if (e.target.name === "stars") {
+            newStars.push(e.target.value)
+            setMovie({
+                ...movie,
+                [e.target.name] : value,
+                stars: newStars
+            })
+        } else {
+            setMovie({
+                ...movie,
+                [e.target.name] : value
+            })
+        }
     }
 
     const handleSubmitUpdate = e => {
         e.preventDefault();
         axios
-            .put(`/api/movies/${id}`, movie)
+            .put(`http://localhost:5000/api/movies/${id}`, movie)
             .then(res => {
                 console.log(res)
-                props.setMovieList(res.data)
-                push(`/movies/`)
+                props.setMovies(res.data)
+                props.getMovieList()
+                push('/')
             })
             .catch(err => console.log(err))
     }
